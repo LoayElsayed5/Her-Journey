@@ -1,0 +1,27 @@
+﻿using DomainLayer.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Persistence.Data.Configuration
+{
+    public class MedicalHistoryConfiguration : IEntityTypeConfiguration<MedicalHistory>
+    {
+        public void Configure(EntityTypeBuilder<MedicalHistory> builder)
+        {
+            builder.HasOne(M=>M.Patient)
+                .WithMany(P=>P.MedicalHistory)
+                .HasForeignKey(M=>M.PatientId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(M=>M.CreatedByDoctor)
+                .WithMany(D=>D.CreatedMedicalHistories)
+                .HasForeignKey(M=>M.CreatedByDoctorId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+    }
+}

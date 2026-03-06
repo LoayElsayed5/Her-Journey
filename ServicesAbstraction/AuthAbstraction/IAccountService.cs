@@ -1,0 +1,19 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Shared.DTos.IdentityModuleDTo;
+
+namespace ServicesAbstraction.AuthServices
+{
+    public interface IAccountService
+    {
+        Task<UserDto> RegisterDoctorAsync(RegisterDoctorDto registerDoctorDto);
+        Task<UserDto> RegisterPatientAsync(RegisterPatientDto registerPatientDto);
+        Task<IdentityResult> ConfirmEmailAsync(ConfirmEmailDto dto);
+
+        Task<UserDto> LoginAsync(LoginDto loginDto);
+    }
+}
