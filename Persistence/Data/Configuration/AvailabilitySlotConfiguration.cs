@@ -17,6 +17,9 @@ namespace Persistence.Data.Configuration
                 .WithMany(D=>D.AvailabilitySlots)
                 .HasForeignKey(A=>A.DoctorId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Property(a => a.Type)
+                   .HasConversion<string>();
         }
     }
 }

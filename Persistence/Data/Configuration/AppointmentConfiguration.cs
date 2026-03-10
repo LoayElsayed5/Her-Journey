@@ -31,6 +31,13 @@ namespace Persistence.Data.Configuration
                 .HasForeignKey<Appointment>(A => A.AvailabilitySlotId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Property(a => a.Status)
+                   .HasConversion<string>();
+
+            builder.Property(a => a.CreatedAt)
+                   .HasDefaultValueSql("GETDATE()");
+
+
             builder.HasIndex(a => a.AvailabilitySlotId); // isUniqe malhash lazma 3ashan el relation aslan ( 1 to 1 ) 
         }
 

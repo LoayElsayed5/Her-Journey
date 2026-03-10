@@ -13,10 +13,21 @@ namespace Persistence.Data.Configuration
     {
         public void Configure(EntityTypeBuilder<MedicalTest> builder)
         {
-            builder.HasOne(M=>M.Patient)
-                .WithMany(P=>P.MedicalTests)
-                .HasForeignKey(M=>M.PatientId)
+            builder.HasOne(M => M.Patient)
+                .WithMany(P => P.MedicalTests)
+                .HasForeignKey(M => M.PatientId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Property(m => m.FileName)
+               .HasMaxLength(255)
+               .IsRequired();
+
+            builder.Property(m => m.FilePath)
+                   .HasMaxLength(1000)
+                   .IsRequired();
+
+            builder.Property(m => m.UploadedAt)
+                   .HasDefaultValueSql("GETDATE()");
         }
     }
 }

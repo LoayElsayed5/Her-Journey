@@ -17,6 +17,23 @@ namespace Persistence.Data.Configuration
                 .WithMany(M=>M.PreScriptions)
                 .HasForeignKey(P=>P.MedicalHistoryId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+
+            builder.Property(p => p.MedicationName)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            builder.Property(p => p.Dosage)
+                   .HasMaxLength(100);
+
+            builder.Property(p => p.Duration)
+                   .HasMaxLength(100);
+
+            builder.Property(p => p.Instructions)
+                   .HasMaxLength(500);
+
+            builder.Property(p => p.CreatedAt)
+                   .HasDefaultValueSql("GETDATE()");
         }
     }
 }

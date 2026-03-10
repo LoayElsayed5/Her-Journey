@@ -139,6 +139,17 @@ namespace Services.AuthServices
 
 
 
+        public async Task<UserDto> GetCurrentUserAsync(string Email)
+        {
+            var User = await _userManager.FindByEmailAsync(Email);
+            return new UserDto
+            {
+                DisplayName = User.DisplayName,
+                Email = User.Email,
+                Token = await CreateTokenAsync(User),
+                Role = (List<string>)await _userManager.GetRolesAsync(User)
+            };
+        }
 
 
 

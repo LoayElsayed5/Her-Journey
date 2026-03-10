@@ -21,7 +21,7 @@ namespace DomainLayer.Models
         public string? Notes { get; set; }
 
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; }
 
         public ICollection<PreScription> PreScriptions { get; set; } = [];
 

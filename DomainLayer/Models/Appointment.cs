@@ -20,6 +20,6 @@ namespace DomainLayer.Models
 
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; }
     }
 }

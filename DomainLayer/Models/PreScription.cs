@@ -17,6 +17,6 @@ namespace DomainLayer.Models
         public string Dosage { get; set; } = default!;
         public string Duration { get; set; } = default!;
         public string Instructions { get; set; } = default!;
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; }
     }
 }

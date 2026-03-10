@@ -15,13 +15,25 @@ namespace Persistence.Data.Configuration
         {
             builder.HasOne(M=>M.Patient)
                 .WithMany(P=>P.MedicalHistory)
-                .HasForeignKey(M=>M.PatientId)
+                .HasForeignKey(M=>M.PatientId) 
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(M=>M.CreatedByDoctor)
                 .WithMany(D=>D.CreatedMedicalHistories)
                 .HasForeignKey(M=>M.CreatedByDoctorId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Property(m => m.Diagnosis)
+               .HasMaxLength(500);
+
+            builder.Property(m => m.VitalSigns)
+                .HasMaxLength(250);
+
+            builder.Property(m => m.Notes)
+                   .HasMaxLength(1000);
+
+            builder.Property(m => m.CreatedAt)
+                   .HasDefaultValueSql("GETDATE()");
         }
     }
 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -30,15 +31,14 @@ namespace Presentation.Controllers
             return Ok(result);
         }
 
-
- [HttpGet]
-        public IActionResult Get()
+        [HttpGet("CurrentUser")]
+        public async Task<ActionResult<UserDto>> GetCurrentUser()
         {
-            return Ok(new {
-                message = "Backend Dockerized and working!",
-                time = DateTime.Now
-            });
+            var Email = User.FindFirstValue(ClaimTypes.Email);
+            var AppUser =await _accountService.GetCurrentUserAsync(Email!);
+            return Ok(AppUser);
         }
+
 
         [HttpPost("ConfirmEmail")]
         public async Task<ActionResult<IdentityResult>> ConfirmEmail(ConfirmEmailDto dto)

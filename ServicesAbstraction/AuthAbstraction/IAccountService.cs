@@ -14,6 +14,8 @@ namespace ServicesAbstraction.AuthServices
         Task<UserDto> RegisterPatientAsync(RegisterPatientDto registerPatientDto);
         Task<IdentityResult> ConfirmEmailAsync(ConfirmEmailDto dto);
 
+        Task<UserDto> GetCurrentUserAsync(string Email);
+
         Task<UserDto> LoginAsync(LoginDto loginDto);
     }
 }

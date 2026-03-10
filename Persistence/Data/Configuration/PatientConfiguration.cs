@@ -18,10 +18,14 @@ namespace Persistence.Data.Configuration
                 .HasForeignKey<Patient>(P => P.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(P=>P.Doctor)
-                .WithMany(D=>D.Patients)
-                .HasForeignKey(P=>P.DoctorID)
+            builder.HasOne(P => P.Doctor)
+                .WithMany(D => D.Patients)
+                .HasForeignKey(P => P.DoctorID)
                 .OnDelete(DeleteBehavior.Restrict);
+
+
+            builder.Property(p => p.BloodType)
+                .HasMaxLength(5);
         }
     }
 }
