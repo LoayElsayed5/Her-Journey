@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Her_Journey.Factories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -60,6 +61,18 @@ namespace Her_Journey.Extensions
                 };
             });
 
+            return Services;
+        }
+
+
+
+
+        public static IServiceCollection AddWebApplicationServices(this IServiceCollection Services)
+        {
+            Services.Configure<ApiBehaviorOptions>((Options) =>
+            {
+                Options.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationErrorsResponse;
+            });
             return Services;
         }
     }

@@ -1,4 +1,5 @@
 ﻿using DomainLayer.Contracts;
+using DomainLayer.Exceptions;
 using DomainLayer.IdentityModule;
 using DomainLayer.Models;
 using Microsoft.AspNetCore.Identity;
@@ -9,6 +10,7 @@ using ServicesAbstraction.AuthServices;
 using Shared.DTos.IdentityModuleDTo;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
@@ -57,8 +59,8 @@ namespace Services.AuthServices
             }
             else
             {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                throw new Exception(errors);
+                var Errors = result.Errors.Select(E => E.Description).ToList();
+                throw new BadRequestException(Errors);
             }
         }
 
@@ -101,8 +103,8 @@ namespace Services.AuthServices
             }
             else
             {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                throw new Exception(errors);
+                var Errors = result.Errors.Select(E => E.Description).ToList();
+                throw new BadRequestException(Errors);
             }
 
         }
@@ -114,7 +116,7 @@ namespace Services.AuthServices
             var User = await _userManager.FindByEmailAsync(loginDto.Email);
             if (User == null)
             {
-                throw new Exception("Invalid email or password.");
+                throw new UnauthorizedException();
             }
             if (!await _userManager.IsEmailConfirmedAsync(User))
                 throw new Exception("Your account is not activated. Please check your email for the activation link.");
@@ -181,8 +183,10 @@ namespace Services.AuthServices
         {
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-
-            var confirmationLink = $"https://localhost:7121/api/Account/ConfirmEmail?userId={user.Id}&token={encodedToken}";
+            var frontendBaseUrl = "https://graduation-project-ten-liart.vercel.app/createpass";
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+            var confirmationLink = $"{frontendBaseUrl}?userId={user.Id}&Email={user.Email}&Role={userRole}&token={encodedToken}";
 
             var subject = "Account Activation - HerJourney";
             var body = $"<h1>Welcome {user.DisplayName}</h1>" +
