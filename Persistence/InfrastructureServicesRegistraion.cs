@@ -15,6 +15,7 @@ namespace Persistence
         {
 
             Services.AddScoped<IUnitOfWork,UnitOfWork>();
+            Services.AddScoped<IDataSeeding, DataSeeding>();
 
 
 

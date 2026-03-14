@@ -11,7 +11,7 @@ namespace DomainLayer.IdentityModule
     public class ApplicationUser : IdentityUser
     {
         public string DisplayName { get; set; } = default!;
-
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
         public Doctor? Doctor { get; set; }
 
         public Patient? Patient { get; set; }

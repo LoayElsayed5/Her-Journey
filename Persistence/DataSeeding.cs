@@ -23,24 +23,61 @@ namespace Persistence
                     }
                 }
 
-                if (!_userManager.Users.Any())
+
+                var admins = new List<ApplicationUser>
                 {
-                    var adminUser = new ApplicationUser()
+                    new ApplicationUser()
                     {
-                        Email = "loayayad2017@gmail.com",
-                        DisplayName = "Loay ELsayed",
+                        Email = "Loay@gmail.com",
+                        DisplayName = "Loay",
                         PhoneNumber = "01123062981",
-                        UserName = "Loay05",
-                        EmailConfirmed = true
-                    };
-
-                    var result = await _userManager.CreateAsync(adminUser, "Lol01012345$");
-
-                    if (result.Succeeded)
+                        UserName = "Loay",
+                        EmailConfirmed = true,
+                        CreatedAt = DateTime.Now
+                    },
+                    new ApplicationUser()
                     {
-                        await _userManager.AddToRoleAsync(adminUser, "Admin");
+                        Email = "Mariam@gmail.com",
+                        DisplayName = "Mariam",
+                        PhoneNumber = "01151660962",
+                        UserName = "Mariam",
+                        EmailConfirmed = true,
+                        CreatedAt = DateTime.Now
+                    },
+                    new ApplicationUser()
+                    {
+                        Email = "Maha@gmail.com",
+                        DisplayName = "Maha",
+                        PhoneNumber = "01000769828",
+                        UserName = "Maha",
+                        EmailConfirmed = true,
+                        CreatedAt = DateTime.Now
+                    },
+                    new ApplicationUser()
+                    {
+                        Email = "Shahd@gmail.com",
+                        DisplayName = "Shahd",
+                        PhoneNumber = "01010861461",
+                        UserName = "Shahd",
+                        EmailConfirmed = true,
+                        CreatedAt = DateTime.Now
+                    },
+
+                    };
+                foreach (var adminUser in admins)
+                {
+                    var existingAdmin = await _userManager.FindByEmailAsync(adminUser.Email!);
+                    if (existingAdmin == null)
+                    {
+                        var result = await _userManager.CreateAsync(adminUser, "Hj01012345$");
+
+                        if (result.Succeeded)
+                        {
+                            await _userManager.AddToRoleAsync(adminUser, "Admin");
+                        }
                     }
                 }
+
 
                 await _identityDbContext.SaveChangesAsync();
             }

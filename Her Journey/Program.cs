@@ -2,8 +2,12 @@
 using DomainLayer.Contracts;
 using Her_Journey.Extensions;
 using Persistence;
+using Services;
 using Services.AuthServices;
+using Services.DoctorServices;
 using ServicesAbstraction.AuthServices;
+using ServicesAbstraction.DoctorAbstraction;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Her_Journey
@@ -29,24 +33,31 @@ namespace Her_Journey
 
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                            .AddJsonOptions(options =>
+                            {
+                                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                            });
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
             builder.Services.AddSwagerServices();
             builder.Services.AddJWTService(builder.Configuration);
 
+
+            builder.Services.ApplicationServices();
+
+
             builder.Services.AddWebApplicationServices();
 
 
-            builder.Services.AddScoped<IDataSeeding, DataSeeding>();
-            builder.Services.AddScoped<IAccountService, AccountService>();
+
 
             var app = builder.Build();
 
-           await app.SeedDataBaseAsync();
+            await app.SeedDataBaseAsync();
 
-            app.UseCustomExcepationMiddleWare();
+            app.UseCustomExceptionMiddleWare();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

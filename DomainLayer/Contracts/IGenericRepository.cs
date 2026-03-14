@@ -13,5 +13,11 @@ namespace DomainLayer.Contracts
         void Remove(TEntity entity);
         Task<TEntity?> GetByIdAsync(int Id);
         Task<IEnumerable<TEntity>> GetAllAsync();
+
+        #region With specification
+        Task<TEntity?> GetByIdAsync(ISpecifications<TEntity> specifications);
+        Task<IEnumerable<TEntity>> GetAllAsync(ISpecifications<TEntity> specifications);
+        Task<int> CountAsync(ISpecifications<TEntity> specifications);
+        #endregion
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ServicesAbstraction.AuthServices;
 using Shared.DTos.IdentityModuleDTo;
@@ -16,46 +17,27 @@ namespace Presentation.Controllers
     [ApiController]
     public class AccountController(IAccountService _accountService) : ControllerBase
     {
-        [HttpPost("RegisterDoctor")]
-        public async Task<ActionResult<UserDto>> RegisterDoctor(RegisterDoctorDto dto)
-        {
-            var result = await _accountService.RegisterDoctorAsync(dto);
-            return Ok(result);
-        }
-
-        [HttpPost("RegisterPatient")]
-        public async Task<ActionResult<UserDto>> RegisterPatient(RegisterPatientDto dto)
-        {
-            var result = await _accountService.RegisterPatientAsync(dto);
-
-            return Ok(result);
-        }
-
         [HttpGet("CurrentUser")]
         public async Task<ActionResult<UserDto>> GetCurrentUser()
         {
             var Email = User.FindFirstValue(ClaimTypes.Email);
-            var AppUser =await _accountService.GetCurrentUserAsync(Email!);
+            var AppUser = await _accountService.GetCurrentUserAsync(Email!);
             return Ok(AppUser);
         }
 
 
         [HttpPost("ConfirmEmail")]
-        public async Task<ActionResult<IdentityResult>> ConfirmEmail(ConfirmEmailDto dto)
+        public async Task<ActionResult> ConfirmEmail(ConfirmEmailDto dto)
         {
-            var result = await _accountService.ConfirmEmailAsync(dto);
-
-            if (result.Succeeded)
-                return Ok(new { message = "Account confirmed and password set successfully! You can login now." });
-
-            return BadRequest(result.Errors);
+            await _accountService.ConfirmEmailAsync(dto);
+            return Ok(new { message = "Account confirmed and password set successfully! You can login now." });
         }
 
 
         [HttpPost("Login")]
         public async Task<ActionResult<UserDto>> Login(LoginDto dto)
         {
-            var result =await _accountService.LoginAsync(dto);
+            var result = await _accountService.LoginAsync(dto);
             return Ok(result);
         }
     }

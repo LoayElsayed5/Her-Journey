@@ -15,9 +15,9 @@ namespace Her_Journey.Extensions
 
 
         }
-        public static IApplicationBuilder UseCustomExcepationMiddleWare(this IApplicationBuilder app)
+        public static IApplicationBuilder UseCustomExceptionMiddleWare(this IApplicationBuilder app)
         {
-            app.UseMiddleware<CustomExpceptionHandlerMiddleWare>();
+            app.UseMiddleware<CustomExceptionHandlerMiddleWare>();
             return app;
         }
         public static IApplicationBuilder UseSwaggerMiddleWares(this IApplicationBuilder app)

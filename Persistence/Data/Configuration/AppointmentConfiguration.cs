@@ -16,14 +16,14 @@ namespace Persistence.Data.Configuration
             builder.HasOne(A => A.Patient)
                 .WithMany(P => P.Appointments)
                 .HasForeignKey(A => A.PatientId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.NoAction);
 
 
 
             builder.HasOne(A => A.Doctor)
                 .WithMany(D => D.Appointments)
                 .HasForeignKey(A => A.DoctorId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.NoAction);
 
 
             builder.HasOne(A => A.AvailabilitySlot)

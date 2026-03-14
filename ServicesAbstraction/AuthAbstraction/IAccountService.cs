@@ -10,9 +10,7 @@ namespace ServicesAbstraction.AuthServices
 {
     public interface IAccountService
     {
-        Task<UserDto> RegisterDoctorAsync(RegisterDoctorDto registerDoctorDto);
-        Task<UserDto> RegisterPatientAsync(RegisterPatientDto registerPatientDto);
-        Task<IdentityResult> ConfirmEmailAsync(ConfirmEmailDto dto);
+        Task ConfirmEmailAsync(ConfirmEmailDto dto);
 
         Task<UserDto> GetCurrentUserAsync(string Email);
 

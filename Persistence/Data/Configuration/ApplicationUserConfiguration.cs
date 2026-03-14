@@ -16,7 +16,7 @@ namespace Persistence.Data.Configuration
             builder
                    .HasIndex(u => u.NormalizedEmail)
                    .IsUnique();
-
+            builder.Property(x => x.CreatedAt).HasDefaultValueSql("GETDATE()");
         }
     }
 }

@@ -1,14 +1,15 @@
 ﻿using DomainLayer.Exceptions;
+using Microsoft.AspNetCore.Http;
 using Shared.ErrorModels;
 
 namespace Her_Journey.CustomMiddleWares
 {
-    public class CustomExpceptionHandlerMiddleWare
+    public class CustomExceptionHandlerMiddleWare
     {
         private readonly RequestDelegate _next;
-        private readonly ILogger<CustomExpceptionHandlerMiddleWare> _logger;
+        private readonly ILogger<CustomExceptionHandlerMiddleWare> _logger;
 
-        public CustomExpceptionHandlerMiddleWare(RequestDelegate Next, ILogger<CustomExpceptionHandlerMiddleWare> logger)
+        public CustomExceptionHandlerMiddleWare(RequestDelegate Next, ILogger<CustomExceptionHandlerMiddleWare> logger)
         {
             _next = Next;
             _logger = logger;
@@ -31,7 +32,6 @@ namespace Her_Journey.CustomMiddleWares
         {
             var Response = new ErrorToReturn
             {
-                StatusCode = context.Response.StatusCode,
                 ErrorMessage = ex.Message
             };
             // set status code for response
@@ -41,11 +41,13 @@ namespace Her_Journey.CustomMiddleWares
             {
                 NotFoundException => StatusCodes.Status404NotFound,
                 UnauthorizedException => StatusCodes.Status401Unauthorized,
+                NotActivatedException => StatusCodes.Status403Forbidden,
                 BadRequestException badRequestException => GetBadRequestErrors(badRequestException, Response),
                 _ => StatusCodes.Status500InternalServerError
             };
 
 
+            Response.StatusCode = context.Response.StatusCode;
             // set content type for response
             //context.Response.ContentType = "application/json"; malhash lazma
 

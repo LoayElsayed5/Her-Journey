@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace DomainLayer.Exceptions
 {
-    public sealed class BadRequestException(List<string> Errors) : Exception("Validation Failed")
+    public sealed class PatientNotFoundException(int id) : NotFoundException($"Patient With Id: {id} Is Not Found")
     {
-        public List<string> Errors { get; } = Errors;
     }
 }
