@@ -12,7 +12,7 @@ namespace Her_Journey.Extensions
             var scoope = app.Services.CreateScope();
             var ObjectDataSeeding = scoope.ServiceProvider.GetRequiredService<IDataSeeding>();
             await ObjectDataSeeding.IdentityDataSeedingAsync();
-
+            await ObjectDataSeeding.SeedDoctorsAndPatientsAsync();
 
         }
         public static IApplicationBuilder UseCustomExceptionMiddleWare(this IApplicationBuilder app)

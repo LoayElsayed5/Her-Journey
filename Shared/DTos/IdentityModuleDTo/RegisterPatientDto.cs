@@ -17,15 +17,15 @@ namespace Shared.DTos.IdentityModuleDTo
         [Phone]
         public string PhoneNumber { get; set; } = default!;
 
-        public string BloodType { get; set; } = default!;
+        //public string? BloodType { get; set; } = default!;
 
-        public DateOnly DateOfBirth { get; set; }
+        //public DateOnly? DateOfBirth { get; set; }
 
-        public int Height { get; set; }
-        public int Age { get; set; }
-        public int Weight { get; set; }
-        public int PregnancyWeek { get; set; }
-        public int NumberOfPregnancies { get; set; }
+        //public int? Height { get; set; }
+        //public int? Age { get; set; }
+        //public int? Weight { get; set; }
+        //public int? PregnancyWeek { get; set; }
+        //public int? NumberOfPregnancies { get; set; }
 
         public int DoctorId { get; set; }
     }
