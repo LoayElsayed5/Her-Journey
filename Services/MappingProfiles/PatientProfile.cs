@@ -16,16 +16,18 @@ namespace Services.MappingProfiles
         public PatientProfile()
         {
             CreateMap<RegisterPatientDto, Patient>();
+
             CreateMap<Patient, PatientDto>()
                 .ForMember(dest => dest.DisplayName, opt => opt.MapFrom(src => src.User.DisplayName))
                 .ForMember(dest => dest.DoctorName, opt => opt.MapFrom(src => src.Doctor.User.DisplayName))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.User.PhoneNumber))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
                 .ForMember(dest => dest.Actived, opt => opt.MapFrom(src => src.User.EmailConfirmed))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.User.CreatedAt));
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.User.CreatedAt))
+                .IncludeMembers(src => src.MedicalInfo);
 
 
-
+            CreateMap<MedicalData, PatientDto>();
             CreateMap<Patient, UserDashBoardDto>()
                 .ForMember(dest => dest.DisplayName, opt => opt.MapFrom(src => src.User.DisplayName))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.User.PhoneNumber))
@@ -33,6 +35,10 @@ namespace Services.MappingProfiles
                 .ForMember(d => d.Role, o => o.MapFrom(src => "Patient"))
                 .ForMember(dest => dest.Actived, opt => opt.MapFrom(src => src.User.EmailConfirmed))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.User.CreatedAt));
+
+
+            CreateMap<CompleteMedicalProfileDto, MedicalData>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null)); ;
         }
     }
 }

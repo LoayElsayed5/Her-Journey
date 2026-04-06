@@ -12,13 +12,13 @@ namespace Shared.DTos.PaginationDTo
         {
             PageIndex = pageIndex;
             PageSize = pageSize;
-            count = totalCount;
+            Count = totalCount;
             Data = data;
         }
 
         public int PageIndex { get; set; }
         public int PageSize { get; set; }
-        public int count { get; set; }
+        public int Count { get; set; }
 
         public IEnumerable<TEntity> Data { get; set; }
     }

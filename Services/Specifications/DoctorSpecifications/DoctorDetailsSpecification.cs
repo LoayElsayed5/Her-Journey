@@ -14,6 +14,10 @@ namespace Services.Specifications.DoctorSpecifications
         {
             AddInclude(d => d.User);
         }
+        public DoctorDetailsSpecification(string email) : base(D => D.User.Email == email)
+        {
+            AddInclude(d => d.User);
+        }
 
         public DoctorDetailsSpecification(DashBoardQueryParams queryParams) : base()
         {

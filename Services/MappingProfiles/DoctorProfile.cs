@@ -38,6 +38,15 @@ namespace Services.MappingProfiles
                 .ForMember(d => d.Role, o => o.MapFrom(src => "Doctor"))
                 .ForMember(dest => dest.Actived, opt => opt.MapFrom(src => src.User.EmailConfirmed))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.User.CreatedAt));
+
+
+            CreateMap<Patient, DoctorPatientDto>()
+            .ForMember(d => d.PatientId, o => o.MapFrom(s => s.Id))
+            .ForMember(d => d.DisplayName, o => o.MapFrom(s => s.User.DisplayName))
+            .ForMember(d => d.Email, o => o.MapFrom(s => s.User.Email))
+            .ForMember(d => d.PhoneNumber, o => o.MapFrom(s => s.User.PhoneNumber))
+            .ForMember(d => d.CreatedAt, o => o.MapFrom(s => s.User.CreatedAt))
+            .ForMember(d => d.Actived, o => o.MapFrom(s => s.User.EmailConfirmed));
         }
     }
 }

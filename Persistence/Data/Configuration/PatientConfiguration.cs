@@ -24,8 +24,26 @@ namespace Persistence.Data.Configuration
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            builder.Property(p => p.BloodType)
-                .HasMaxLength(5);
+
+            builder.OwnsOne(p => p.MedicalInfo, medicalBuilder =>
+            {
+                medicalBuilder.Property(m => m.PregnancyWeek)
+                              .HasComputedColumnSql("(DATEDIFF(DAY, [PregnancyStartDate], GETDATE()) / 7) + 1", stored: false);
+
+                medicalBuilder.Property(p => p.Age)
+                   .HasComputedColumnSql("DATEDIFF(YEAR, [DateOfBirth], GETDATE()) " +
+                   "- CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, [DateOfBirth], GETDATE()), [DateOfBirth]) > GETDATE() THEN 1 ELSE 0 END"
+                   , stored: false);
+
+                medicalBuilder.Property(m => m.Age).HasColumnName("Age");
+                medicalBuilder.Property(m => m.DateOfBirth).HasColumnName("DateOfBirth");
+                medicalBuilder.Property(m => m.Height).HasColumnName("Height");
+                medicalBuilder.Property(m => m.Weight).HasColumnName("Weight");
+                medicalBuilder.Property(m => m.BloodType).HasColumnName("BloodType").HasMaxLength(5);
+                medicalBuilder.Property(m => m.NumberOfPregnancies).HasColumnName("NumberOfPregnancies");
+                medicalBuilder.Property(m => m.PregnancyStartDate).HasColumnName("PregnancyStartDate");
+                medicalBuilder.Property(m => m.PregnancyWeek).HasColumnName("PregnancyWeek");
+            });
         }
     }
 }

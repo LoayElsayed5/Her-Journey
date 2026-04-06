@@ -10,7 +10,7 @@ namespace Persistence
     public class DataSeeding(UserManager<ApplicationUser> _userManager,
         RoleManager<IdentityRole> _roleManager
         , StoreIdentityDbContext _identityDbContext
-        ,IUnitOfWork _unitOfWork) : IDataSeeding
+        , IUnitOfWork _unitOfWork) : IDataSeeding
     {
         public async Task IdentityDataSeedingAsync()
         {
@@ -122,11 +122,11 @@ namespace Persistence
                     var doctor = new Doctor
                     {
                         UserId = docUser.Id,
-                        YearsOfExperience = random.Next(5, 20) 
+                        YearsOfExperience = random.Next(5, 20)
                     };
 
                     await doctorRepo.AddAsync(doctor);
-                    await _unitOfWork.SaveChangesAsync(); 
+                    await _unitOfWork.SaveChangesAsync();
                     var patientRepo = _unitOfWork.GetRepository<Patient>();
                     for (int p = 1; p <= 2; p++)
                     {
@@ -146,19 +146,23 @@ namespace Persistence
                         {
                             await _userManager.AddToRoleAsync(patUser, "Patient");
 
-                            int age = random.Next(20, 40); 
+                            int age = random.Next(20, 40);
 
                             var patient = new Patient
                             {
                                 UserId = patUser.Id,
-                                DoctorID = doctor.Id, 
-                                Age = age,
-                                DateOfBirth = DateOnly.FromDateTime(DateTime.Now.AddYears(-age)),
-                                BloodType = bloodTypes[random.Next(bloodTypes.Length)], 
-                                Height = random.Next(155, 175),
-                                Weight = random.Next(60, 90), 
-                                PregnancyWeek = random.Next(4, 36), 
-                                NumberOfPregnancies = random.Next(1, 4)
+                                DoctorID = doctor.Id,
+                                MedicalInfo = new MedicalData
+                                {
+                                    DateOfBirth = DateOnly.FromDateTime(DateTime.Now.AddYears(-age)),
+                                    Age = age,
+                                    BloodType = bloodTypes[random.Next(bloodTypes.Length)],
+                                    Height = random.Next(155, 175),
+                                    Weight = random.Next(60, 90),
+                                    PregnancyWeek = random.Next(4, 36),
+                                    NumberOfPregnancies = random.Next(1, 4),
+                                    PregnancyStartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-(random.Next(4, 36) * 7)))
+                                }
                             };
 
                             await patientRepo.AddAsync(patient);

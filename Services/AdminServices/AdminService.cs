@@ -216,19 +216,17 @@ namespace Services.AdminServices
             var Prepo = _unitOfWork.GetRepository<Patient>();
             var patient = await Prepo.GetByIdAsync(Id) ?? throw new PatientNotFoundException(Id);
 
-            if (dto.Weight.HasValue) patient.Weight = dto.Weight.Value;
-            if (dto.Height.HasValue) patient.Height = dto.Height.Value;
-            if (dto.PregnancyWeek.HasValue) patient.PregnancyWeek = dto.PregnancyWeek.Value;
-            if (dto.NumberOfPregnancies.HasValue) patient.NumberOfPregnancies = dto.NumberOfPregnancies.Value;
-
-            if (dto.Age.HasValue) patient.Age = dto.Age.Value;
+            if (dto.Weight.HasValue) patient.MedicalInfo.Weight = dto.Weight.Value;
+            if (dto.Height.HasValue) patient.MedicalInfo.Height = dto.Height.Value;
+            if (dto.PregnancyStartDate.HasValue) patient.MedicalInfo.PregnancyStartDate = dto.PregnancyStartDate.Value;
+            if (dto.NumberOfPregnancies.HasValue) patient.MedicalInfo.NumberOfPregnancies = dto.NumberOfPregnancies.Value;
 
 
-            if (!string.IsNullOrWhiteSpace(dto.BloodType)) patient.BloodType = dto.BloodType;
+            if (!string.IsNullOrWhiteSpace(dto.BloodType)) patient.MedicalInfo.BloodType = dto.BloodType;
 
             if (dto.DateOfBirth.HasValue)
             {
-                patient.DateOfBirth = dto.DateOfBirth.Value;
+                patient.MedicalInfo.DateOfBirth = dto.DateOfBirth.Value;
             }
 
             if (dto.DoctorID.HasValue)
@@ -388,10 +386,34 @@ namespace Services.AdminServices
 
 
             var Data = DoctorsDto.Concat(PatientsDto);
+
+            if (!string.IsNullOrEmpty(queryParams.Role))
+            {
+                Data = Data.Where(u => u.Role.Equals(queryParams.Role, StringComparison.OrdinalIgnoreCase));
+            }
+
+
+            if (!string.IsNullOrEmpty(queryParams.search))
+            {
+                Data = Data.Where(u => (u.DisplayName != null && u.DisplayName.ToLower().Contains(queryParams.search.ToLower())) ||
+                                       (u.Email != null && u.Email.ToLower().Contains(queryParams.search.ToLower())));
+            }
+
+            if (queryParams.FromDate.HasValue)
+            {
+                Data = Data.Where(u => u.CreatedAt.Date >= queryParams.FromDate.Value.Date);
+            }
+
+            if (queryParams.ToDate.HasValue)
+            {
+                Data = Data.Where(u => u.CreatedAt.Date < queryParams.ToDate.Value.Date.AddDays(1));
+            }
+
+
             Data = queryParams.sort switch
             {
                 BoardSortingOptions.DateDesc => Data.OrderByDescending(u => u.CreatedAt),
-                _=> Data.OrderBy(u => u.CreatedAt)
+                _ => Data.OrderBy(u => u.CreatedAt)
             };
 
             var totalCount = Data.Count();

@@ -3,10 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Services.AdminServices;
 using Services.AuthServices;
 using Services.DoctorServices;
+using Services.PatientServices;
 using ServicesAbstraction;
 using ServicesAbstraction.AuthServices;
 using ServicesAbstraction.DoctorAbstraction;
 using ServicesAbstraction.IAdminAbstraction;
+using ServicesAbstraction.PatientAbstraction;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +37,10 @@ namespace Services
             Services.AddScoped<IAdminService, AdminService>();
             Services.AddScoped<Func<IAdminService>>(Provider =>
             () => Provider.GetRequiredService<IAdminService>());
+            
+            Services.AddScoped<IPatientService, PatientService>();
+            Services.AddScoped<Func<IPatientService>>(Provider =>
+            () => Provider.GetRequiredService<IPatientService>());
 
 
             Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

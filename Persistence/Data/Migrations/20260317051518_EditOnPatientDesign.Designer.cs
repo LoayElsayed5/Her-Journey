@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistence.Data;
 
@@ -11,9 +12,11 @@ using Persistence.Data;
 namespace Persistence.Data.Migrations
 {
     [DbContext(typeof(StoreIdentityDbContext))]
-    partial class StoreIdentityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260317051518_EditOnPatientDesign")]
+    partial class EditOnPatientDesign
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -269,6 +272,14 @@ namespace Persistence.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("Age")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("int")
+                        .HasComputedColumnSql("DATEDIFF(YEAR, [DateOfBirth], GETDATE()) - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, [DateOfBirth], GETDATE()), [DateOfBirth]) > GETDATE() THEN 1 ELSE 0 END", false);
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
+
                     b.Property<int>("DoctorID")
                         .HasColumnType("int");
 
@@ -488,20 +499,10 @@ namespace Persistence.Data.Migrations
                             b1.Property<int>("PatientId")
                                 .HasColumnType("int");
 
-                            b1.Property<int?>("Age")
-                                .ValueGeneratedOnAddOrUpdate()
-                                .HasColumnType("int")
-                                .HasColumnName("Age")
-                                .HasComputedColumnSql("DATEDIFF(YEAR, [DateOfBirth], GETDATE()) - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, [DateOfBirth], GETDATE()), [DateOfBirth]) > GETDATE() THEN 1 ELSE 0 END", false);
-
                             b1.Property<string>("BloodType")
                                 .HasMaxLength(5)
                                 .HasColumnType("nvarchar(5)")
                                 .HasColumnName("BloodType");
-
-                            b1.Property<DateOnly?>("DateOfBirth")
-                                .HasColumnType("date")
-                                .HasColumnName("DateOfBirth");
 
                             b1.Property<int?>("Height")
                                 .HasColumnType("int")

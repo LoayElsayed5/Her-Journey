@@ -17,6 +17,7 @@ namespace Presentation.Controllers
     [ApiController]
     public class AccountController(IAccountService _accountService) : ControllerBase
     {
+        [Authorize]
         [HttpGet("CurrentUser")]
         public async Task<ActionResult<UserDto>> GetCurrentUser()
         {

@@ -6,7 +6,16 @@ using System.Threading.Tasks;
 
 namespace DomainLayer.Exceptions
 {
-    public sealed class PatientNotFoundException(int id) : NotFoundException($"Patient With Id: {id} Is Not Found")
+    public sealed class PatientNotFoundException : NotFoundException
     {
+        public PatientNotFoundException(int id)
+            : base($"Patient With Id: {id} Is Not Found")
+        {
+        }
+
+        public PatientNotFoundException(string userId)
+            : base($"Patient With User Id: {userId} Is Not Found")
+        {
+        }
     }
 }

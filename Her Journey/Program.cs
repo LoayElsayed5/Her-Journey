@@ -55,15 +55,15 @@ namespace Her_Journey
 
             var app = builder.Build();
 
-            await app.SeedDataBaseAsync();
+            //await app.SeedDataBaseAsync();
 
             app.UseCustomExceptionMiddleWare();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
+            //if (app.Environment.IsDevelopment())
+            //{
                 app.UseSwaggerMiddleWares();
-            }
+            //}
 
             app.UseHttpsRedirection();
             app.UseCors("AllowAll");
