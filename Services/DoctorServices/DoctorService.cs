@@ -228,7 +228,7 @@ namespace Services.DoctorServices
             };
             await MRepo.AddAsync(medicalHistory);
 
-            return await _unitOfWork.SaveChangesAsync() > 0 ? _mapper.Map<MedicalHistoryDetailsDto>(medicalHistory) 
+            return await _unitOfWork.SaveChangesAsync() > 0 ? _mapper.Map<MedicalHistoryDetailsDto>(medicalHistory)
                                                             : throw new BadRequestException(new List<string> { "Failed to add medical history." }); ;
         }
 
@@ -256,9 +256,39 @@ namespace Services.DoctorServices
 
 
             var MedicalHistorySpec = new PatientMedicalHistoriesSpecification(PatientId);
-            var medicalhistories =await MRepo.GetAllAsync(MedicalHistorySpec);
+            var medicalhistories = await MRepo.GetAllAsync(MedicalHistorySpec);
 
             return _mapper.Map<IEnumerable<MedicalHistoryDetailsDto>>(medicalhistories);
+        }
+
+        public async Task<MedicalHistoryDetailsDto> GetPatientMedicalHistoryByIdAsync(string Email, int PatientId, int MedicalHistoryId)
+        {
+            if (string.IsNullOrWhiteSpace(Email))
+                throw new UnauthorizedException();
+
+
+            var DRepo = _unitOfWork.GetRepository<Doctor>();
+            var PRepo = _unitOfWork.GetRepository<Patient>();
+            var MRepo = _unitOfWork.GetRepository<MedicalHistory>();
+
+            var DocotrSpec = new DoctorDetailsSpecification(Email);
+            var doctor = await DRepo.GetByIdAsync(DocotrSpec);
+            if (doctor is null)
+                throw new DoctorNotFoundException("Doctor not found.");
+
+
+            var PatientSpec = new PatientsBelongToSpecifcDoctor(PatientId, doctor.Id);
+            var patient = await PRepo.GetByIdAsync(PatientSpec);
+
+            if (patient is null)
+                throw new BadRequestException(new List<string> { "Patient not found or does not belong to this doctor." });
+
+
+            var MedicalHistorySpec = new PatientMedicalHistoriesSpecification(PatientId, MedicalHistoryId);
+            var medicalHistory = await MRepo.GetByIdAsync(MedicalHistorySpec);
+            if (medicalHistory is null)
+                throw new BadRequestException(new List<string>{"Medical history not found."});
+            return _mapper.Map<MedicalHistoryDetailsDto>(medicalHistory);
         }
     }
 }
