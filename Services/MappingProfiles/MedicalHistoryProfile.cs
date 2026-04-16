@@ -13,9 +13,19 @@ namespace Services.MappingProfiles
     {
         public MedicalHistoryProfile()
         {
-            CreateMap<PreScription, PreScriptionDto>();
 
             CreateMap<MedicalHistory, MedicalHistoryDetailsDto>();
+            CreateMap<UpdateMedicalHistoryDto, MedicalHistory>()
+                     .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+
+
+            CreateMap<AddMedicalHistoryDto, MedicalHistory>()
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.PreScriptions, opt => opt.MapFrom(src =>
+                    src.PreScriptions == null
+                        ? new List<AddPreScriptionDto>()
+                        : src.PreScriptions.Where(p => !string.IsNullOrWhiteSpace(p.MedicationName))));
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using DomainLayer.Models;
+using Shared.DTos.AppointmentDTos;
 using Shared.DTos.DashBoardDTos;
 using Shared.DTos.DoctorDTos;
 using Shared.DTos.IdentityModuleDTo;
@@ -47,6 +48,29 @@ namespace Services.MappingProfiles
             .ForMember(d => d.PhoneNumber, o => o.MapFrom(s => s.User.PhoneNumber))
             .ForMember(d => d.CreatedAt, o => o.MapFrom(s => s.User.CreatedAt))
             .ForMember(d => d.Actived, o => o.MapFrom(s => s.User.EmailConfirmed));
+
+
+
+
+            CreateMap<AddAvailabilitySlotDto, AvailabilitySlot>()
+                .ForMember(dest => dest.Duration,
+                    opt => opt.MapFrom(src => TimeSpan.FromMinutes(src.DurationInMinutes)))
+                .ForMember(dest => dest.Type,
+                    opt => opt.MapFrom(src => (DomainLayer.Models.AppointmentType)src.Type));
+
+
+
+            CreateMap<AvailabilitySlot, AvailabilitySlotDto>()
+                .ForMember(dest => dest.DurationInMinutes,
+                    opt => opt.MapFrom(src => (int)src.Duration.TotalMinutes))
+                .ForMember(dest => dest.Type,
+                    opt => opt.MapFrom(src => (Shared.DTos.AppointmentDTos.AppointmentType)src.Type))
+                .ForMember(dest => dest.IsBooked,
+                    opt => opt.MapFrom(src => src.Appointment != null));
+
+
+
+          
         }
     }
 }

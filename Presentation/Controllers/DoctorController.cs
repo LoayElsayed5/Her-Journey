@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using ServicesAbstraction;
 using ServicesAbstraction.DoctorAbstraction;
+using ServicesAbstraction.ModelAbstraction;
 using Shared.DTos.AppointmentDTos;
 using Shared.DTos.DoctorDTos;
 using Shared.DTos.MedicalHistoryDTos;
+using Shared.DTos.MlDTos;
 using Shared.ErrorModels;
 using System.Security.Claims;
 
@@ -13,6 +15,15 @@ namespace Presentation.Controllers
     [Authorize(Roles = "Doctor")]
     public class DoctorController(IServiceManger _serviceManger) : ApiBaseController
     {
+        [HttpPost("predict")]
+        public async Task<ActionResult<PredictionResponseDto>> Predict([FromBody] PredictionRequestDto request)
+        {
+            var result = await _serviceManger.ModelPredictionService.PredictAsync(request);
+            return Ok(result);
+        }
+
+
+
         [HttpGet("GetAllPatients")]
         public async Task<ActionResult<IEnumerable<DoctorPatientDto>>> GetMyPatients()
         {
@@ -31,6 +42,40 @@ namespace Presentation.Controllers
 
             var result = await _serviceManger.DoctorService.AddMedicalHistoryAsync(email, patientId, dto);
 
+            return Ok(result);
+        }
+
+
+        [HttpPut("UpdateMedicalHistory")]
+        public async Task<ActionResult<MedicalHistoryDetailsDto>> UpdateMedicalHistory(int PatientId, int MedicalHistoryId, UpdateMedicalHistoryDto updateMedicaldto)
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var result = await _serviceManger.DoctorService.UpdateMedicalHistoryAsync(email, PatientId, MedicalHistoryId, updateMedicaldto);
+            return Ok(result);
+        }
+
+        [HttpPut("UpdatePreScription")]
+        public async Task<ActionResult<MedicalHistoryDetailsDto>> UpdatePreScription(int PatientId, int MedicalHistoryId, int PreScriptionId, UpdatePreScriptionDto updatePreScriptionDto)
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var result = await _serviceManger.DoctorService.UpdatePrescriptionAsync(email, PatientId, MedicalHistoryId, PreScriptionId, updatePreScriptionDto);
+            return Ok(result);
+        }
+
+        [HttpDelete("patients/{patientId}/medical-histories/{medicalHistoryId}")]
+        public async Task<ActionResult<ServiceResponse>> DeleteMedicalHistory(int patientId, int medicalHistoryId)
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var result = await _serviceManger.DoctorService.DeleteMedicalHistoryAsync(email!, patientId, medicalHistoryId);
+            return Ok(result);
+        }
+
+
+        [HttpDelete("patients/{patientId}/medical-histories/{medicalHistoryId}/prescriptions/{prescriptionId}")]
+        public async Task<ActionResult<ServiceResponse>> DeletePrescription(int patientId,int medicalHistoryId,int prescriptionId)
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var result = await _serviceManger.DoctorService.DeletePreScriptionAsync(email!, patientId, medicalHistoryId, prescriptionId);
             return Ok(result);
         }
 
@@ -58,9 +103,7 @@ namespace Presentation.Controllers
         {
             var Email = User.FindFirstValue(ClaimTypes.Email);
 
-            if (string.IsNullOrWhiteSpace(Email))
-                return Unauthorized();
-
+       
             var result = await _serviceManger.DoctorService.AddAvailabilitySlotAsync(Email, dto);
 
             return Ok(result);

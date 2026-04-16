@@ -5,19 +5,12 @@ using DomainLayer.Models;
 using Services.Specifications.DoctorSpecifications;
 using Services.Specifications.MedicalHistorySpecification;
 using Services.Specifications.PatientSpecifications;
+using Services.Specifications.PreScriptionSpecifications;
 using ServicesAbstraction.DoctorAbstraction;
 using Shared.DTos.AppointmentDTos;
-using Shared.DTos.DashBoardDTos;
 using Shared.DTos.DoctorDTos;
 using Shared.DTos.MedicalHistoryDTos;
 using Shared.ErrorModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Reflection.Metadata.BlobBuilder;
 
 namespace Services.DoctorServices
 {
@@ -25,6 +18,12 @@ namespace Services.DoctorServices
     {
         public async Task<bool> AddAvailabilitySlotAsync(string Email, AddAvailabilitySlotDto addAvailabilitySlot)
         {
+            if (string.IsNullOrWhiteSpace(Email))
+                throw new UnauthorizedException();
+
+            if (addAvailabilitySlot is null)
+                throw new BadRequestException("Availability slot data is required.");
+
             var DRepo = _unitOfWork.GetRepository<Doctor>();
             var SlotRepo = _unitOfWork.GetRepository<AvailabilitySlot>();
 
@@ -35,10 +34,10 @@ namespace Services.DoctorServices
                 throw new DoctorNotFoundException("Doctor not found.");
 
             if (addAvailabilitySlot.StartAt <= DateTime.Now)
-                throw new BadRequestException(new List<string> { "Start time must be in the future." });
+                throw new BadRequestException("Start time must be in the future.");
 
             if (addAvailabilitySlot.DurationInMinutes <= 0)
-                throw new BadRequestException(new List<string> { "Duration must be greater than zero." });
+                throw new BadRequestException("Duration must be greater than zero.");
 
             var newEnd = addAvailabilitySlot.StartAt.AddMinutes(addAvailabilitySlot.DurationInMinutes);
 
@@ -50,26 +49,28 @@ namespace Services.DoctorServices
                 newEnd > slot.StartAt);
 
             if (hasOverlap)
-                throw new BadRequestException(new List<string>
-                {
-                    "This availability slot overlaps with another existing slot."
-                });
+                throw new BadRequestException("This availability slot overlaps with another existing slot.");
+            var availabilitySlot = _mapper.Map<AvailabilitySlot>(addAvailabilitySlot);
+            availabilitySlot.DoctorId = doctor.Id;
 
-            var availabilitySlot = new AvailabilitySlot
-            {
-                DoctorId = doctor.Id,
-                StartAt = addAvailabilitySlot.StartAt,
-                Duration = TimeSpan.FromMinutes(addAvailabilitySlot.DurationInMinutes),
-                Type = (DomainLayer.Models.AppointmentType)addAvailabilitySlot.Type
-            };
+            //var availabilitySlot = new AvailabilitySlot
+            //{
+            //    DoctorId = doctor.Id,
+            //    StartAt = addAvailabilitySlot.StartAt,
+            //    Duration = TimeSpan.FromMinutes(addAvailabilitySlot.DurationInMinutes),
+            //    Type = (DomainLayer.Models.AppointmentType)addAvailabilitySlot.Type
+            //};
+
+
             await SlotRepo.AddAsync(availabilitySlot);
-            await _unitOfWork.SaveChangesAsync();
-            return true;
+            return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
 
         public async Task<IEnumerable<AvailabilitySlotDto>> GetMyAvailabilitySlotsAsync(string Email)
         {
+            if (string.IsNullOrWhiteSpace(Email))
+                throw new UnauthorizedException();
             var DRepo = _unitOfWork.GetRepository<Doctor>();
             var SlotRepo = _unitOfWork.GetRepository<AvailabilitySlot>();
 
@@ -83,18 +84,26 @@ namespace Services.DoctorServices
             var Slots = await SlotRepo.GetAllAsync(slotSpec);
 
 
-            return Slots.Select(slot => new AvailabilitySlotDto
-            {
-                Id = slot.Id,
-                StartAt = slot.StartAt,
-                DurationInMinutes = (int)slot.Duration.TotalMinutes,
-                Type = (Shared.DTos.AppointmentDTos.AppointmentType)slot.Type,
-                IsBooked = slot.Appointment is not null
-            });
+            return _mapper.Map<IEnumerable<AvailabilitySlotDto>>(Slots);
+            //return Slots.Select(slot => new AvailabilitySlotDto
+            //{
+            //    Id = slot.Id,
+            //    StartAt = slot.StartAt,
+            //    DurationInMinutes = (int)slot.Duration.TotalMinutes,
+            //    Type = (Shared.DTos.AppointmentDTos.AppointmentType)slot.Type,
+            //    IsBooked = slot.Appointment is not null
+            //});
         }
 
         public async Task<ServiceResponse> UpdateAvailabilitySlotAsync(string Email, int SlotId, UpdateAvailabilitySlotDto dto)
         {
+
+            if (string.IsNullOrWhiteSpace(Email))
+                throw new UnauthorizedException();
+
+            if (dto is null)
+                throw new BadRequestException("Availability slot data is required.");
+
             var DRepo = _unitOfWork.GetRepository<Doctor>();
             var SlotRepo = _unitOfWork.GetRepository<AvailabilitySlot>();
 
@@ -105,16 +114,16 @@ namespace Services.DoctorServices
 
             var slot = await SlotRepo.GetByIdAsync(slotspec);
             if (slot == null)
-                throw new BadRequestException(new List<string> { "Availability slot not found." });
+                throw new SlotNotFoundException(SlotId);
 
             if (slot.Appointment is not null)
-                throw new BadRequestException(new List<string> { "Booked slot cannot be updated." });
+                throw new BadRequestException("Booked slot cannot be updated.");
 
             if (dto.StartAt <= DateTime.Now)
-                throw new BadRequestException(new List<string> { "Start time must be in the future." });
+                throw new BadRequestException("Start time must be in the future.");
 
             if (dto.DurationInMinutes <= 0)
-                throw new BadRequestException(new List<string> { "Duration must be greater than zero." });
+                throw new BadRequestException("Duration must be greater than zero.");
 
             var newEnd = dto.StartAt.AddMinutes(dto.DurationInMinutes);
 
@@ -127,15 +136,11 @@ namespace Services.DoctorServices
                     newEnd > s.StartAt);
 
             if (hasOverlap)
-                throw new BadRequestException(new List<string>
-                {
-                    "This availability slot overlaps with another existing slot."
-                });
+                throw new BadRequestException("This availability slot overlaps with another existing slot.");
 
             slot.StartAt = dto.StartAt;
             slot.Duration = TimeSpan.FromMinutes(dto.DurationInMinutes);
             slot.Type = (DomainLayer.Models.AppointmentType)dto.Type;
-
             SlotRepo.Update(slot);
             return await _unitOfWork.SaveChangesAsync() > 0 ? new ServiceResponse { Status = true, Message = "Availability slot updated successfully." }
                                                             : new ServiceResponse { Status = true, Message = "No changes were made." };
@@ -143,6 +148,9 @@ namespace Services.DoctorServices
 
         public async Task<ServiceResponse> DeleteAvailabilitySlotAsync(string email, int slotId)
         {
+            if (string.IsNullOrWhiteSpace(email))
+                throw new UnauthorizedException();
+
             var DRepo = _unitOfWork.GetRepository<Doctor>();
             var SlotRepo = _unitOfWork.GetRepository<AvailabilitySlot>();
 
@@ -154,18 +162,21 @@ namespace Services.DoctorServices
             var slotspec = new DoctorAvailabilitySlotByIdSpecification(slotId, doctor.Id);
             var slot = await SlotRepo.GetByIdAsync(slotspec);
             if (slot == null)
-                throw new BadRequestException(new List<string> { "Availability slot not found." });
+                throw new SlotNotFoundException(slotId);
 
             if (slot.Appointment is not null)
-                throw new BadRequestException(new List<string> { "Booked slot cannot be deleted." });
+                throw new BadRequestException("Booked slot cannot be deleted.");
 
             SlotRepo.Remove(slot);
-            return await _unitOfWork.SaveChangesAsync() > 0 ? new ServiceResponse { Status = true, Message = "Availability slot Delete successfully." }
+            return await _unitOfWork.SaveChangesAsync() > 0 ? new ServiceResponse { Status = true, Message = "Availability slot deleted successfully." }
                                                             : new ServiceResponse { Status = false, Message = "Availability slot was not deleted." };
         }
 
         public async Task<IEnumerable<DoctorPatientDto>> GetAllPatientsAsync(string Email)
         {
+            if (string.IsNullOrWhiteSpace(Email))
+                throw new UnauthorizedException();
+
             var DRepo = _unitOfWork.GetRepository<Doctor>();
             var Prepo = _unitOfWork.GetRepository<Patient>();
 
@@ -189,7 +200,7 @@ namespace Services.DoctorServices
 
 
             if (dto is null)
-                throw new BadRequestException(new List<string> { "Medical history data is required." });
+                throw new BadRequestException("Medical history data is required.");
 
             var DRepo = _unitOfWork.GetRepository<Doctor>();
             var PRepo = _unitOfWork.GetRepository<Patient>();
@@ -205,33 +216,161 @@ namespace Services.DoctorServices
             var patient = await PRepo.GetByIdAsync(PatientSpec);
 
             if (patient is null)
-                throw new BadRequestException(new List<string> { "Patient not found or does not belong to this doctor." });
+                throw PatientNotFoundException.Belong("Patient not found or does not belong to this doctor.");
 
-            var medicalHistory = new MedicalHistory
-            {
-                PatientId = PatientId,
-                CreatedByDoctorId = doctor.Id,
-                Diagnosis = dto.Diagnosis,
-                VitalSigns = dto.VitalSigns,
-                Notes = dto.Notes,
-                CreatedAt = DateTime.UtcNow,
-                PreScriptions = dto.PreScriptions?
-                    .Where(p => !string.IsNullOrWhiteSpace(p.MedicationName))
-                    .Select(p => new PreScription
-                    {
-                        MedicationName = p.MedicationName,
-                        Dosage = p.Dosage,
-                        Duration = p.Duration,
-                        Instructions = p.Instructions,
-                        CreatedAt = DateTime.UtcNow
-                    }).ToList() ?? new List<PreScription>()
-            };
+            //var medicalHistory = new MedicalHistory
+            //{
+            //    PatientId = PatientId,
+            //    CreatedByDoctorId = doctor.Id,
+            //    Diagnosis = dto.Diagnosis,
+            //    VitalSigns = dto.VitalSigns,
+            //    Notes = dto.Notes,
+            //    CreatedAt = DateTime.UtcNow,
+            //    PreScriptions = dto.PreScriptions?
+            //        .Where(p => !string.IsNullOrWhiteSpace(p.MedicationName))
+            //        .Select(p => new PreScription
+            //        {
+            //            MedicationName = p.MedicationName,
+            //            Dosage = p.Dosage,
+            //            Duration = p.Duration,
+            //            Instructions = p.Instructions,
+            //            CreatedAt = DateTime.UtcNow
+            //        }).ToList() ?? new List<PreScription>()
+            //};
+            var medicalHistory = _mapper.Map<MedicalHistory>(dto);
+            medicalHistory.PatientId = PatientId;
+            medicalHistory.CreatedByDoctorId = doctor.Id;
+
             await MRepo.AddAsync(medicalHistory);
 
             return await _unitOfWork.SaveChangesAsync() > 0 ? _mapper.Map<MedicalHistoryDetailsDto>(medicalHistory)
-                                                            : throw new BadRequestException(new List<string> { "Failed to add medical history." }); ;
+                                                            : throw new BadRequestException("Failed to add medical history.");
         }
 
+        public async Task<MedicalHistoryDetailsDto> UpdateMedicalHistoryAsync(string Email, int PatientId, int MedicalHistoryId, UpdateMedicalHistoryDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(Email))
+                throw new UnauthorizedException();
+
+            if (dto is null)
+                throw new BadRequestException("Medical history data is required.");
+            var DRepo = _unitOfWork.GetRepository<Doctor>();
+            var PRepo = _unitOfWork.GetRepository<Patient>();
+            var MRepo = _unitOfWork.GetRepository<MedicalHistory>();
+
+            var DocotrSpec = new DoctorDetailsSpecification(Email);
+            var doctor = await DRepo.GetByIdAsync(DocotrSpec);
+            if (doctor is null)
+                throw new DoctorNotFoundException("Doctor not found.");
+
+            var PatientSpec = new PatientsBelongToSpecifcDoctor(PatientId, doctor.Id);
+            var patient = await PRepo.GetByIdAsync(PatientSpec);
+
+            if (patient is null)
+                throw PatientNotFoundException.Belong("Patient not found or does not belong to this doctor.");
+
+            var MedicalHistorySpec = new PatientMedicalHistoriesSpecification(PatientId, MedicalHistoryId);
+            var medicalHistory = await MRepo.GetByIdAsync(MedicalHistorySpec);
+            if (medicalHistory is null)
+                throw new MedicalHistoryNotFoundException(MedicalHistoryId);
+
+
+            _mapper.Map(dto, medicalHistory);
+
+            MRepo.Update(medicalHistory);
+
+            return await _unitOfWork.SaveChangesAsync() > 0
+                ? _mapper.Map<MedicalHistoryDetailsDto>(medicalHistory)
+                : throw new BadRequestException("Failed to update medical history.");
+
+        }
+
+        public async Task<MedicalHistoryDetailsDto> UpdatePrescriptionAsync(string Email, int PatientId, int MedicalHistoryId, int PrescriptionId, UpdatePreScriptionDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(Email))
+                throw new UnauthorizedException();
+
+            if (dto is null)
+                throw new BadRequestException("Prescription data is required.");
+
+            var DRepo = _unitOfWork.GetRepository<Doctor>();
+            var PRepo = _unitOfWork.GetRepository<Patient>();
+            var PRRepo = _unitOfWork.GetRepository<PreScription>();
+
+            var doctor = await DRepo.GetByIdAsync(new DoctorDetailsSpecification(Email));
+            if (doctor is null)
+                throw new DoctorNotFoundException("Doctor not found.");
+
+            var patient = await PRepo.GetByIdAsync(new PatientsBelongToSpecifcDoctor(PatientId, doctor.Id));
+            if (patient is null)
+                throw PatientNotFoundException.Belong("Patient not found or does not belong to this doctor.");
+
+            var prescription = await PRRepo.GetByIdAsync(new PrescriptionByIdSpecification(PatientId, MedicalHistoryId, PrescriptionId));
+            if (prescription is null)
+                throw new PrescriptionNotFoundException(PrescriptionId);
+
+            _mapper.Map(dto, prescription);
+
+            PRRepo.Update(prescription);
+
+            return await _unitOfWork.SaveChangesAsync() > 0
+                ? _mapper.Map<MedicalHistoryDetailsDto>(prescription.MedicalHistory)
+                : throw new BadRequestException("Failed to update prescription.");
+        }
+
+        public async Task<ServiceResponse> DeleteMedicalHistoryAsync(string Email, int PatientId, int MedicalHistoryId)
+        {
+            if (string.IsNullOrWhiteSpace(Email))
+                throw new UnauthorizedException();
+
+            var DRepo = _unitOfWork.GetRepository<Doctor>();
+            var PRepo = _unitOfWork.GetRepository<Patient>();
+            var MRepo = _unitOfWork.GetRepository<MedicalHistory>();
+
+            var doctor = await DRepo.GetByIdAsync(new DoctorDetailsSpecification(Email));
+            if (doctor is null)
+                throw new DoctorNotFoundException("Doctor not found.");
+
+            var patient = await PRepo.GetByIdAsync(new PatientsBelongToSpecifcDoctor(PatientId, doctor.Id));
+            if (patient is null)
+                throw PatientNotFoundException.Belong("Patient not found or does not belong to this doctor.");
+
+            var medicalHistory = await MRepo.GetByIdAsync(new PatientMedicalHistoriesSpecification(PatientId, MedicalHistoryId));
+            if (medicalHistory is null)
+                throw new MedicalHistoryNotFoundException(MedicalHistoryId);
+
+            MRepo.Remove(medicalHistory);
+
+            return await _unitOfWork.SaveChangesAsync() > 0
+                ? new ServiceResponse { Status = true, Message = "Medical history deleted successfully." }
+                : new ServiceResponse { Status = false, Message = "Medical history was not deleted." };
+        }
+        public async Task<ServiceResponse> DeletePreScriptionAsync(string Email, int PatientId, int MedicalHistoryId, int PrescriptionId)
+        {
+            if (string.IsNullOrWhiteSpace(Email))
+                throw new UnauthorizedException();
+
+            var DRepo = _unitOfWork.GetRepository<Doctor>();
+            var PRepo = _unitOfWork.GetRepository<Patient>();
+            var PRRepo = _unitOfWork.GetRepository<PreScription>();
+
+            var doctor = await DRepo.GetByIdAsync(new DoctorDetailsSpecification(Email));
+            if (doctor is null)
+                throw new DoctorNotFoundException("Doctor not found.");
+
+            var patient = await PRepo.GetByIdAsync(new PatientsBelongToSpecifcDoctor(PatientId, doctor.Id));
+            if (patient is null)
+                throw PatientNotFoundException.Belong("Patient not found or does not belong to this doctor.");
+
+            var prescription = await PRRepo.GetByIdAsync(new PrescriptionByIdSpecification(PatientId, MedicalHistoryId, PrescriptionId));
+            if (prescription is null)
+                throw new PrescriptionNotFoundException(PrescriptionId);
+
+            PRRepo.Remove(prescription);
+            return await _unitOfWork.SaveChangesAsync() > 0 ? new ServiceResponse { Status = true, Message = "Prescription deleted successfully." }
+                                                            : new ServiceResponse { Status = false, Message = "Prescription was not deleted." };
+
+        }
         public async Task<IEnumerable<MedicalHistoryDetailsDto>> GetPatientMedicalHistoriesAsync(string Email, int PatientId)
         {
             if (string.IsNullOrWhiteSpace(Email))
@@ -252,7 +391,7 @@ namespace Services.DoctorServices
             var patient = await PRepo.GetByIdAsync(PatientSpec);
 
             if (patient is null)
-                throw new BadRequestException(new List<string> { "Patient not found or does not belong to this doctor." });
+                throw PatientNotFoundException.Belong("Patient not found or does not belong to this doctor.");
 
 
             var MedicalHistorySpec = new PatientMedicalHistoriesSpecification(PatientId);
@@ -281,14 +420,15 @@ namespace Services.DoctorServices
             var patient = await PRepo.GetByIdAsync(PatientSpec);
 
             if (patient is null)
-                throw new BadRequestException(new List<string> { "Patient not found or does not belong to this doctor." });
+                throw PatientNotFoundException.Belong("Patient not found or does not belong to this doctor.");
 
 
             var MedicalHistorySpec = new PatientMedicalHistoriesSpecification(PatientId, MedicalHistoryId);
             var medicalHistory = await MRepo.GetByIdAsync(MedicalHistorySpec);
             if (medicalHistory is null)
-                throw new BadRequestException(new List<string>{"Medical history not found."});
+                throw new MedicalHistoryNotFoundException(MedicalHistoryId);
             return _mapper.Map<MedicalHistoryDetailsDto>(medicalHistory);
         }
+
     }
 }

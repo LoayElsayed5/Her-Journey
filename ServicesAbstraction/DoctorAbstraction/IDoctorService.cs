@@ -16,9 +16,16 @@ namespace ServicesAbstraction.DoctorAbstraction
     {
         public Task<IEnumerable<DoctorPatientDto>> GetAllPatientsAsync(string Email);
 
-        public Task<MedicalHistoryDetailsDto> AddMedicalHistoryAsync(string Email,int PatientId,AddMedicalHistoryDto addMedicaldto);
         public Task<IEnumerable<MedicalHistoryDetailsDto>> GetPatientMedicalHistoriesAsync(string Email, int PatientId);
-        public Task<MedicalHistoryDetailsDto> GetPatientMedicalHistoryByIdAsync(string Email, int PatientId,int MedicalHistoryId);
+        public Task<MedicalHistoryDetailsDto> GetPatientMedicalHistoryByIdAsync(string Email, int PatientId, int MedicalHistoryId);
+        public Task<MedicalHistoryDetailsDto> AddMedicalHistoryAsync(string Email, int PatientId, AddMedicalHistoryDto addMedicaldto);
+
+        public Task<MedicalHistoryDetailsDto> UpdateMedicalHistoryAsync(string Email, int PatientId, int MedicalHistoryId, UpdateMedicalHistoryDto updateMedicaldto);
+        public Task<MedicalHistoryDetailsDto> UpdatePrescriptionAsync(string email, int patientId, int medicalHistoryId, int prescriptionId, UpdatePreScriptionDto dto);
+
+        public Task<ServiceResponse> DeleteMedicalHistoryAsync(string Email, int PatientId, int MedicalHistoryId);
+        public Task<ServiceResponse> DeletePreScriptionAsync(string Email, int PatientId, int medicalHistoryId, int prescriptionId);
+
 
         public Task<bool> AddAvailabilitySlotAsync(string Email, AddAvailabilitySlotDto addAvailabilitySlot);
 
@@ -26,6 +33,6 @@ namespace ServicesAbstraction.DoctorAbstraction
 
         public Task<ServiceResponse> UpdateAvailabilitySlotAsync(string Email, int SlotId, UpdateAvailabilitySlotDto updateAvailabilitySlot);
 
-        public  Task<ServiceResponse> DeleteAvailabilitySlotAsync(string email, int slotId);
+        public Task<ServiceResponse> DeleteAvailabilitySlotAsync(string email, int slotId);
     }
 }

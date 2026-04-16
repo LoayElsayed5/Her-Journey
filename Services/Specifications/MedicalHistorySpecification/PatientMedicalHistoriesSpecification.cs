@@ -13,8 +13,9 @@ namespace Services.Specifications.MedicalHistorySpecification
         {
             AddInclude(M => M.PreScriptions);
         }
-        public PatientMedicalHistoriesSpecification(int patientId,int medicalhistoryId) : 
-            base(M => M.PatientId == patientId &&M.Id == medicalhistoryId )
+
+        public PatientMedicalHistoriesSpecification(int patientId, int medicalhistoryId) :
+            base(M => M.PatientId == patientId && M.Id == medicalhistoryId)
         {
             AddInclude(M => M.PreScriptions);
         }
