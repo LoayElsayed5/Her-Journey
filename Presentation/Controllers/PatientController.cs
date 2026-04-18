@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServicesAbstraction;
+using Shared.DTos.AppointmentDTos;
+using Shared.DTos.MedicalTestDTos;
 using Shared.DTos.PatientDTos;
+using Shared.ErrorModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +24,51 @@ namespace Presentation.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
             var result = await _serviceManger.PatientService.CompleteProfileAsync(userId, completeMedicalProfileDto);
+            return Ok(result);
+        }
+
+
+        [HttpGet("GetAllAvailbleSlots")]
+        public async Task<ActionResult<IEnumerable<AvailabilitySlotDto>>> GetAllAvailbleSlots()
+        {
+            var Email = User.FindFirstValue(ClaimTypes.Email);
+
+            var result = await _serviceManger.PatientService.GetAllSlotsAsync(Email!);
+            return Ok(result);
+        }
+
+
+        [HttpPost("UploadMedicalTest")]
+        public async Task<ActionResult<MedicalTestDto>> UploadMedicalTest([FromForm] UploadMedicalTestDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var result = await _serviceManger.PatientService.UploadMedicalTestAsync(userId, dto);
+            return Ok(result);
+        }
+
+
+        [HttpGet("GetMyMedicalTests")]
+        public async Task<ActionResult<IEnumerable<MedicalTestDto>>> GetMyMedicalTests()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var result = await _serviceManger.PatientService.GetMyMedicalTestsAsync(userId);
+            return Ok(result);
+        }
+
+        [HttpDelete("DeleteMedicalTest")]
+        public async Task<ActionResult<ServiceResponse>> DeleteMedicalTest(int medicalTestId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var result = await _serviceManger.PatientService.DeleteMedicalTestAsync(userId, medicalTestId);
             return Ok(result);
         }
     }

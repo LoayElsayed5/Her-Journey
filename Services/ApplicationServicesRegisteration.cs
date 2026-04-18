@@ -3,11 +3,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Services.AdminServices;
 using Services.AuthServices;
+using Services.Common;
 using Services.DoctorServices;
 using Services.ModelServices;
 using Services.PatientServices;
 using ServicesAbstraction;
 using ServicesAbstraction.AuthServices;
+using ServicesAbstraction.Common;
 using ServicesAbstraction.DoctorAbstraction;
 using ServicesAbstraction.IAdminAbstraction;
 using ServicesAbstraction.ModelAbstraction;
@@ -47,7 +49,9 @@ namespace Services
             () => Provider.GetRequiredService<IPatientService>());
 
 
-            
+            Services.AddScoped<IFileStorageService, GoogleCloudStorageService>();
+
+
             Services.AddHttpClient<IModelPredictionService, ModelPredictionService>((sp, client) =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
