@@ -16,9 +16,15 @@ namespace ServicesAbstraction.PatientAbstraction
 
         public Task<IEnumerable<AvailabilitySlotDto>> GetAllSlotsAsync(string Email);
 
+        //Task<MedicalTestDto> UploadMedicalTestAsync(string userId, UploadMedicalTestDto dto);
+
+        //Task<IEnumerable<MedicalTestDto>> GetMyMedicalTestsAsync(string userId);
+        //Task<ServiceResponse> DeleteMedicalTestAsync(string userId, int medicalTestId);
+
         Task<MedicalTestDto> UploadMedicalTestAsync(string userId, UploadMedicalTestDto dto);
 
-        Task<IEnumerable<MedicalTestDto>> GetMyMedicalTestsAsync(string userId);
+        Task<IEnumerable<MedicalTestListDto>> GetMyMedicalTestsAsync(string userId);
+        Task<MedicalTestFileDto> ViewMedicalTestAsync(string userId, int medicalTestId);
         Task<ServiceResponse> DeleteMedicalTestAsync(string userId, int medicalTestId);
     }
 }

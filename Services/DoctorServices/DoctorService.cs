@@ -4,17 +4,20 @@ using DomainLayer.Exceptions;
 using DomainLayer.Models;
 using Services.Specifications.DoctorSpecifications;
 using Services.Specifications.MedicalHistorySpecification;
+using Services.Specifications.MedicalTestSpecifications;
 using Services.Specifications.PatientSpecifications;
 using Services.Specifications.PreScriptionSpecifications;
+using ServicesAbstraction.Common;
 using ServicesAbstraction.DoctorAbstraction;
 using Shared.DTos.AppointmentDTos;
 using Shared.DTos.DoctorDTos;
 using Shared.DTos.MedicalHistoryDTos;
+using Shared.DTos.MedicalTestDTos;
 using Shared.ErrorModels;
 
 namespace Services.DoctorServices
 {
-    public class DoctorService(IUnitOfWork _unitOfWork, IMapper _mapper) : IDoctorService
+    public class DoctorService(IUnitOfWork _unitOfWork, IMapper _mapper, IFileStorageService _fileStorageService) : IDoctorService
     {
         public async Task<bool> AddAvailabilitySlotAsync(string Email, AddAvailabilitySlotDto addAvailabilitySlot)
         {
@@ -428,6 +431,58 @@ namespace Services.DoctorServices
             if (medicalHistory is null)
                 throw new MedicalHistoryNotFoundException(MedicalHistoryId);
             return _mapper.Map<MedicalHistoryDetailsDto>(medicalHistory);
+        }
+
+
+        public async Task<IEnumerable<MedicalTestListDto>> GetPatientMedicalTestsAsync(string Email, int PatientId)
+        {
+            if (string.IsNullOrWhiteSpace(Email))
+                throw new UnauthorizedException();
+
+            var DRepo = _unitOfWork.GetRepository<Doctor>();
+            var PRepo = _unitOfWork.GetRepository<Patient>();
+            var MRepo = _unitOfWork.GetRepository<MedicalTest>();
+
+            var doctor = await DRepo.GetByIdAsync(new DoctorDetailsSpecification(Email));
+            if (doctor is null)
+                throw new DoctorNotFoundException("Doctor not found.");
+
+            var patient = await PRepo.GetByIdAsync(new PatientsBelongToSpecifcDoctor(PatientId, doctor.Id));
+            if (patient is null)
+                throw PatientNotFoundException.Belong("Patient not found or does not belong to this doctor.");
+
+            var tests = await MRepo.GetAllAsync(new PatientMedicalTestsSpecification(PatientId));
+
+            return _mapper.Map<IEnumerable<MedicalTestListDto>>(tests.OrderByDescending(t => t.UploadedAt));
+        }
+
+        public async Task<MedicalTestFileDto> ViewPatientMedicalTestAsync(string Email, int PatientId, int medicalTestId)
+        {
+            if (string.IsNullOrWhiteSpace(Email))
+                throw new UnauthorizedException();
+
+            var DRepo = _unitOfWork.GetRepository<Doctor>();
+            var PRepo = _unitOfWork.GetRepository<Patient>();
+            var MRepo = _unitOfWork.GetRepository<MedicalTest>();
+
+            var doctor = await DRepo.GetByIdAsync(new DoctorDetailsSpecification(Email));
+            if (doctor is null)
+                throw new DoctorNotFoundException("Doctor not found.");
+
+            var patient = await PRepo.GetByIdAsync(new PatientsBelongToSpecifcDoctor(PatientId, doctor.Id));
+            if (patient is null)
+                throw PatientNotFoundException.Belong("Patient not found or does not belong to this doctor.");
+
+            var medicalTest = await MRepo.GetByIdAsync(
+                new PatientMedicalTestsSpecification(PatientId, medicalTestId));
+
+            if (medicalTest is null)
+                throw new BadRequestException("Medical test not found.");
+
+            var fileResult = await _fileStorageService.DownloadFileAsync(medicalTest.FilePath);
+            fileResult.FileName = medicalTest.FileName;
+
+            return fileResult;
         }
 
     }

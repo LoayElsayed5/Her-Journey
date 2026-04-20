@@ -2,6 +2,7 @@
 using Shared.DTos.DashBoardDTos;
 using Shared.DTos.DoctorDTos;
 using Shared.DTos.MedicalHistoryDTos;
+using Shared.DTos.MedicalTestDTos;
 using Shared.ErrorModels;
 using System;
 using System.Collections.Generic;
@@ -34,5 +35,10 @@ namespace ServicesAbstraction.DoctorAbstraction
         public Task<ServiceResponse> UpdateAvailabilitySlotAsync(string Email, int SlotId, UpdateAvailabilitySlotDto updateAvailabilitySlot);
 
         public Task<ServiceResponse> DeleteAvailabilitySlotAsync(string email, int slotId);
+
+
+
+        Task<IEnumerable<MedicalTestListDto>> GetPatientMedicalTestsAsync(string Email, int PatientId);
+        Task<MedicalTestFileDto> ViewPatientMedicalTestAsync(string Email, int PatientId, int medicalTestId);
     }
 }

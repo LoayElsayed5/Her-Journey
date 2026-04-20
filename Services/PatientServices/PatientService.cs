@@ -123,7 +123,55 @@ namespace Services.PatientServices
             }
         }
 
-        public async Task<IEnumerable<MedicalTestDto>> GetMyMedicalTestsAsync(string userId)
+
+        //#region
+        //public async Task<IEnumerable<MedicalTestDto>> GetMyMedicalTestsAsync(string userId)
+        //{
+        //    if (string.IsNullOrWhiteSpace(userId))
+        //        throw new UnauthorizedException();
+
+        //    var patientRepo = _unitOfWork.GetRepository<Patient>();
+        //    var medicalTestRepo = _unitOfWork.GetRepository<MedicalTest>();
+
+        //    var patient = await patientRepo.GetByIdAsync(new PatientByIdSpecification(userId));
+        //    if (patient == null)
+        //        throw new PatientNotFoundException(userId);
+
+        //    var tests = await medicalTestRepo.GetAllAsync(new PatientMedicalTestsSpecification(patient.Id));
+
+        //    return _mapper.Map<IEnumerable<MedicalTestDto>>(tests.OrderByDescending(m => m.UploadedAt));
+        //}
+
+        //public async Task<ServiceResponse> DeleteMedicalTestAsync(string userId, int medicalTestId)
+        //{
+        //    if (string.IsNullOrWhiteSpace(userId))
+        //        throw new UnauthorizedException();
+
+        //    var patientRepo = _unitOfWork.GetRepository<Patient>();
+        //    var medicalTestRepo = _unitOfWork.GetRepository<MedicalTest>();
+
+        //    var patient = await patientRepo.GetByIdAsync(new PatientByIdSpecification(userId));
+        //    if (patient == null)
+        //        throw new PatientNotFoundException(userId);
+
+        //    var medicalTest = await medicalTestRepo.GetByIdAsync(new PatientMedicalTestsSpecification(patient.Id, medicalTestId));
+        //    if (medicalTest == null)
+        //        throw new BadRequestException("Medical test not found.");
+
+        //    if (!string.IsNullOrWhiteSpace(medicalTest.FilePath))
+        //    {
+        //        await _fileStorageService.DeleteFileAsync(medicalTest.FilePath);
+        //    }
+
+        //    medicalTestRepo.Remove(medicalTest);
+
+        //    return await _unitOfWork.SaveChangesAsync() > 0
+        //        ? new ServiceResponse { Status = true, Message = "Medical test deleted successfully." }
+        //        : new ServiceResponse { Status = false, Message = "Medical test was not deleted." };
+        //}
+        //#endregion
+
+        public async Task<IEnumerable<MedicalTestListDto>> GetMyMedicalTestsAsync(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
                 throw new UnauthorizedException();
@@ -137,7 +185,31 @@ namespace Services.PatientServices
 
             var tests = await medicalTestRepo.GetAllAsync(new PatientMedicalTestsSpecification(patient.Id));
 
-            return _mapper.Map<IEnumerable<MedicalTestDto>>(tests.OrderByDescending(m => m.UploadedAt));
+            return _mapper.Map<IEnumerable<MedicalTestListDto>>(tests.OrderByDescending(t => t.UploadedAt));
+        }
+
+        public async Task<MedicalTestFileDto> ViewMedicalTestAsync(string userId, int medicalTestId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new UnauthorizedException();
+
+            var patientRepo = _unitOfWork.GetRepository<Patient>();
+            var medicalTestRepo = _unitOfWork.GetRepository<MedicalTest>();
+
+            var patient = await patientRepo.GetByIdAsync(new PatientByIdSpecification(userId));
+            if (patient == null)
+                throw new PatientNotFoundException(userId);
+
+            var medicalTest = await medicalTestRepo.GetByIdAsync(
+                new PatientMedicalTestsSpecification(patient.Id, medicalTestId));
+
+            if (medicalTest == null)
+                throw new BadRequestException("Medical test not found.");
+
+            var fileResult = await _fileStorageService.DownloadFileAsync(medicalTest.FilePath);
+            fileResult.FileName = medicalTest.FileName;
+
+            return fileResult;
         }
 
         public async Task<ServiceResponse> DeleteMedicalTestAsync(string userId, int medicalTestId)
@@ -152,7 +224,9 @@ namespace Services.PatientServices
             if (patient == null)
                 throw new PatientNotFoundException(userId);
 
-            var medicalTest = await medicalTestRepo.GetByIdAsync(new PatientMedicalTestsSpecification(patient.Id, medicalTestId));
+            var medicalTest = await medicalTestRepo.GetByIdAsync(
+                new PatientMedicalTestsSpecification(patient.Id, medicalTestId));
+
             if (medicalTest == null)
                 throw new BadRequestException("Medical test not found.");
 
@@ -164,11 +238,17 @@ namespace Services.PatientServices
             medicalTestRepo.Remove(medicalTest);
 
             return await _unitOfWork.SaveChangesAsync() > 0
-                ? new ServiceResponse { Status = true, Message = "Medical test deleted successfully." }
-                : new ServiceResponse { Status = false, Message = "Medical test was not deleted." };
+                ? new ServiceResponse
+                {
+                    Status = true,
+                    Message = "Medical test deleted successfully."
+                }
+                : new ServiceResponse
+                {
+                    Status = false,
+                    Message = "Medical test was not deleted."
+                };
         }
-
-
         private static string BuildMedicalTestObjectName(int patientId, string fileName)
         {
             var extension = Path.GetExtension(fileName);

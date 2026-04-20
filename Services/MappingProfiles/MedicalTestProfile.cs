@@ -14,6 +14,7 @@ namespace Services.MappingProfiles
         public MedicalTestProfile()
         {
             CreateMap<MedicalTest, MedicalTestDto>();
+            CreateMap<MedicalTest, MedicalTestListDto>();
         }
     }
 }

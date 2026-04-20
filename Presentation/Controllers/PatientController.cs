@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServicesAbstraction;
 using Shared.DTos.AppointmentDTos;
@@ -49,9 +50,8 @@ namespace Presentation.Controllers
             return Ok(result);
         }
 
-
         [HttpGet("GetMyMedicalTests")]
-        public async Task<ActionResult<IEnumerable<MedicalTestDto>>> GetMyMedicalTests()
+        public async Task<ActionResult<IEnumerable<MedicalTestListDto>>> GetMyMedicalTests()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
@@ -59,6 +59,32 @@ namespace Presentation.Controllers
 
             var result = await _serviceManger.PatientService.GetMyMedicalTestsAsync(userId);
             return Ok(result);
+        }
+
+        [HttpGet("ViewMedicalTest/{medicalTestId}")]
+        public async Task<IActionResult> ViewMedicalTest(int medicalTestId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var result = await _serviceManger.PatientService.ViewMedicalTestAsync(userId, medicalTestId);
+
+            Response.Headers["Content-Disposition"] = $"inline; filename=\"{result.FileName}\"";
+            return File(result.Content, result.ContentType, enableRangeProcessing: true);
+        }
+
+
+        [HttpGet("DownloadMedicalTest/{medicalTestId}")]
+        public async Task<IActionResult> DownloadMedicalTest(int medicalTestId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var result = await _serviceManger.PatientService.ViewMedicalTestAsync(userId, medicalTestId);
+
+            return File(result.Content, result.ContentType, result.FileName);
         }
 
         [HttpDelete("DeleteMedicalTest")]
@@ -71,5 +97,30 @@ namespace Presentation.Controllers
             var result = await _serviceManger.PatientService.DeleteMedicalTestAsync(userId, medicalTestId);
             return Ok(result);
         }
+
+
+        //#region
+        //[HttpGet("GetMyMedicalTests")]
+        //public async Task<ActionResult<IEnumerable<MedicalTestDto>>> GetMyMedicalTests()
+        //{
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    if (string.IsNullOrEmpty(userId))
+        //        return Unauthorized();
+
+        //    var result = await _serviceManger.PatientService.GetMyMedicalTestsAsync(userId);
+        //    return Ok(result);
+        //}
+
+        //[HttpDelete("DeleteMedicalTest")]
+        //public async Task<ActionResult<ServiceResponse>> DeleteMedicalTest(int medicalTestId)
+        //{
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    if (string.IsNullOrEmpty(userId))
+        //        return Unauthorized();
+
+        //    var result = await _serviceManger.PatientService.DeleteMedicalTestAsync(userId, medicalTestId);
+        //    return Ok(result);
+        //}
+        //#endregion
     }
 }

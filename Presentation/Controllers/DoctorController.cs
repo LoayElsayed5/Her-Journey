@@ -6,6 +6,7 @@ using ServicesAbstraction.ModelAbstraction;
 using Shared.DTos.AppointmentDTos;
 using Shared.DTos.DoctorDTos;
 using Shared.DTos.MedicalHistoryDTos;
+using Shared.DTos.MedicalTestDTos;
 using Shared.DTos.MlDTos;
 using Shared.ErrorModels;
 using System.Security.Claims;
@@ -135,6 +136,34 @@ namespace Presentation.Controllers
 
             var result = await _serviceManger.DoctorService.DeleteAvailabilitySlotAsync(Email!, SlotId);
             return Ok(result);
+        }
+
+
+        [HttpGet("GetPatientMedicalTests")]
+        public async Task<ActionResult<IEnumerable<MedicalTestListDto>>> GetPatientMedicalTests(int patientId)
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var result = await _serviceManger.DoctorService.GetPatientMedicalTestsAsync(email!, patientId);
+            return Ok(result);
+        }
+
+        [HttpGet("ViewPatientMedicalTest")]
+        public async Task<IActionResult> ViewPatientMedicalTest(int patientId, int medicalTestId)
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var result = await _serviceManger.DoctorService.ViewPatientMedicalTestAsync(email!, patientId, medicalTestId);
+
+            Response.Headers["Content-Disposition"] = $"inline; filename=\"{result.FileName}\"";
+            return File(result.Content, result.ContentType, enableRangeProcessing: true);
+        }
+
+        [HttpGet("DownloadPatientMedicalTest")]
+        public async Task<IActionResult> DownloadPatientMedicalTest(int patientId, int medicalTestId)
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var result = await _serviceManger.DoctorService.ViewPatientMedicalTestAsync(email!, patientId, medicalTestId);
+
+            return File(result.Content, result.ContentType, result.FileName);
         }
     }
 }
